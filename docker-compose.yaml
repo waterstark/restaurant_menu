@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app_db:
+    container_name: app_db
+    image: postgres:15.1-alpine
+    volumes:
+      - ./psql:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_USER=${DB_USER}
+    env_file:
+      - .env
+    networks:
+      - app_network
+    expose:
+      - '5432'
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - shared:/ylab_project/reports
+    env_file:
+      - .env
+    entrypoint: >
+      sh -c "
+        poetry run alembic upgrade head &&
+        poetry run uvicorn src.main:app --host 0.0.0.0 --reload
+      "
+    networks:
+      - app_network
+    ports:
+      - 8000:8000
+    depends_on:
+      app_db:
+        condition: service_healthy
+
+volumes:
+  shared:
+
+
+networks:
+  app_network:
+    name: app_network

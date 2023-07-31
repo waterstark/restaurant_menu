@@ -1,4 +1,5 @@
-from pydantic import BaseModel, validator
+from decimal import Decimal
+from pydantic import BaseModel, ConfigDict, field_validator
 from uuid import UUID
 
 
@@ -7,8 +8,7 @@ def price_format(price: float) -> str:
 
 
 class ConfigModel(BaseModel):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BaseRestaurantModel(ConfigModel):
@@ -34,9 +34,9 @@ class ResponseSubmenuModel(ResponseBaseRestaurantModel):
 
 
 class ResponseDishModel(ResponseBaseRestaurantModel):
-    price: float
+    price: Decimal
 
-    _normalize_price = validator("price", allow_reuse=True)(price_format)
+    _normalize_price = field_validator("price")(price_format)
 
 
 class MenuModel(BaseRestaurantModel):

@@ -22,7 +22,7 @@ router = APIRouter(
 @router.get(
     "/", response_model=list[ResponseListMenuModel], status_code=status.HTTP_200_OK
 )
-async def get_menus(session: AsyncSession = Depends(get_async_session)):
+async def get_all_menus(session: AsyncSession = Depends(get_async_session)):
     query = select(Menu)
     result = await session.execute(query)
     return result.scalars().fetchall()
@@ -78,7 +78,9 @@ async def update_menu(
 
 
 @router.delete("/{menu_id}", status_code=status.HTTP_200_OK)
-async def get_menu(menu_id: UUID, session: AsyncSession = Depends(get_async_session)):
+async def delete_menu(
+    menu_id: UUID, session: AsyncSession = Depends(get_async_session)
+):
     query = delete(Menu).where(Menu.id == menu_id)
     await session.execute(query)
     await session.commit()
@@ -92,6 +94,7 @@ async def count_submenus_and_dishes(menu_id, session: AsyncSession):
                 select(func.count(Dishes.id))
                 .where(SubMenu.id == Dishes.submenu_id)
                 .correlate(SubMenu)
+                .scalar_subquery()
             ),
         )
         .select_from(Menu)

@@ -17,8 +17,10 @@ router = APIRouter(
 @router.get(
     "/", response_model=list[ResponseSubmenuModel], status_code=status.HTTP_200_OK
 )
-async def get_submenu(session: AsyncSession = Depends(get_async_session)):
-    query = select(SubMenu)
+async def get_all_submenu(
+    menu_id: UUID, session: AsyncSession = Depends(get_async_session)
+):
+    query = select(SubMenu).where(SubMenu.menu_id == menu_id)
     result = await session.execute(query)
     return result.scalars().fetchall()
 
@@ -82,7 +84,7 @@ async def update_submenu(
 
 
 @router.delete("/{submenu_id}", status_code=status.HTTP_200_OK)
-async def get_menu(
+async def delete_submenu(
     submenu_id: UUID, session: AsyncSession = Depends(get_async_session)
 ):
     await session.execute(delete(Dishes).where(Dishes.submenu_id == submenu_id))

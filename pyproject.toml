@@ -4,18 +4,30 @@ version = "0.1.0"
 description = ""
 authors = ["waterstark <waterstark97@yandex.ru>"]
 readme = "README.md"
-packages = [{include = "restaurant_menu"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 fastapi = "^0.100.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.19"}
 python-dotenv = "^1.0.0"
 uvicorn = "^0.23.1"
 asyncpg = "^0.28.0"
 alembic = "^1.11.1"
+pytest-asyncio = "^0.21.1"
+httpx = "^0.24.1"
+exceptiongroup = "^1.1.2"
 
+
+[tool.poetry.group.dev.dependencies]
+devtools = "^0.11.0"
+dirty-equals = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".", "src",
+    ]
+asyncio_mode = "auto"
