@@ -28,6 +28,21 @@ services:
       timeout: 3s
       retries: 5
 
+  app_redis:
+    container_name: app_redis
+    image: redis:latest
+    env_file:
+      - .env
+    networks:
+      - app_network
+    expose:
+      - 6379
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
   app:
     container_name: app
     build:
@@ -48,6 +63,8 @@ services:
       - 8000:8000
     depends_on:
       app_db:
+        condition: service_healthy
+      app_redis:
         condition: service_healthy
 
 volumes:

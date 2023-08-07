@@ -1,10 +1,11 @@
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, field_validator
 from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, RootModel, field_validator
 
 
 def price_format(price: float) -> str:
-    return f"{price:.2f}"
+    return f'{price:.2f}'
 
 
 class ConfigModel(BaseModel):
@@ -25,10 +26,6 @@ class ResponseMenuModel(ResponseBaseRestaurantModel):
     dishes_count: int = 0
 
 
-class ResponseListMenuModel(ResponseMenuModel):
-    pass
-
-
 class ResponseSubmenuModel(ResponseBaseRestaurantModel):
     dishes_count: int = 0
 
@@ -36,7 +33,7 @@ class ResponseSubmenuModel(ResponseBaseRestaurantModel):
 class ResponseDishModel(ResponseBaseRestaurantModel):
     price: Decimal
 
-    _normalize_price = field_validator("price")(price_format)
+    _normalize_price = field_validator('price')(price_format)
 
 
 class MenuModel(BaseRestaurantModel):
@@ -66,3 +63,8 @@ class UpdateSubmenuModel(UpdateRestaurantModel):
 
 class UpdateDishModel(UpdateRestaurantModel):
     price: float | None
+
+
+ResponseAllMenu = RootModel[list[ResponseMenuModel]]
+ResponceAllSubmenu = RootModel[list[ResponseSubmenuModel]]
+ResponceAllDish = RootModel[list[ResponseDishModel]]

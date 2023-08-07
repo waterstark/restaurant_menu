@@ -1,16 +1,14 @@
-from fastapi import APIRouter, status, HTTPException, Depends
-from sqlalchemy import select, insert, update, delete
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.database import get_async_session
-from src.models import SubMenu, Menu, Dishes
-from src.schemas import DishModel, ResponseDishModel, UpdateDishModel
-
+from typing import Annotated
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, status
+
+from src.schemas import DishModel, ResponceAllDish, ResponseDishModel, UpdateDishModel
+from src.service.service import DishService
+
 router = APIRouter(
-    prefix="/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes",
-    tags=["dishes"],
+    prefix='/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes',
+    tags=['dishes'],
 )
 
 
@@ -23,75 +21,59 @@ router = APIRouter(
 #     return result.scalars().fetchall()
 
 
-@router.post("/", response_model=ResponseDishModel, status_code=status.HTTP_201_CREATED)
+@router.post('/', response_model=ResponseDishModel, status_code=status.HTTP_201_CREATED)
 async def add_dish(
     submenu_id: UUID,
     new_dish: DishModel,
-    session: AsyncSession = Depends(get_async_session),
-):
-    stmt = (
-        insert(Dishes)
-        .values(**new_dish.model_dump(), submenu_id=submenu_id)
-        .returning(Dishes)
-    )
-    result = await session.execute(stmt)
-    await session.commit()
-    return result.scalar()
+    dish: Annotated[DishService, Depends()],
+    menu_id: UUID,
+) -> ResponseDishModel:
+    return await dish.create_dish(submenu_id, new_dish, menu_id)
 
 
 @router.get(
-    "/",
-    response_model=list[ResponseDishModel],
+    '/',
+    response_model=ResponceAllDish,
     status_code=status.HTTP_200_OK,
 )
-async def get_dishes(
-    submenu_id: UUID, session: AsyncSession = Depends(get_async_session)
-):
-    query = select(Dishes).where(Dishes.submenu_id == submenu_id)
-    result = await session.execute(query)
-    return result.scalars().fetchall()
+async def get_all_dishes(
+    submenu_id: UUID,
+    dishes: Annotated[DishService, Depends()],
+) -> ResponceAllDish:
+    return await dishes.read_all_dishes(submenu_id)
 
 
 @router.get(
-    "/{dish_id}",
+    '/{dish_id}',
     response_model=ResponseDishModel,
     status_code=status.HTTP_200_OK,
 )
-async def get_submenu(
-    dish_id: UUID, session: AsyncSession = Depends(get_async_session)
-):
-    query = select(Dishes).where(Dishes.id == dish_id)
-    result = await session.execute(query)
-    submenu = result.scalar()
-    if not submenu:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="dish not found"
-        )
-    return submenu
+async def get_dish(
+    dish_id: UUID,
+    dish: Annotated[DishService, Depends()],
+) -> ResponseDishModel:
+    return await dish.read_dish(dish_id)
 
 
 @router.patch(
-    "/{dish_id}", response_model=ResponseDishModel, status_code=status.HTTP_200_OK
+    '/{dish_id}',
+    response_model=ResponseDishModel,
+    status_code=status.HTTP_200_OK,
 )
-async def update_submenu(
+async def upload_dish(
     submenu_id: UUID,
     dish_id: UUID,
     new_submenu: UpdateDishModel,
-    session: AsyncSession = Depends(get_async_session),
-):
-    stmt = (
-        update(Dishes)
-        .values(**new_submenu.model_dump(), submenu_id=submenu_id)
-        .returning(Dishes)
-        .where(Dishes.id == dish_id)
-    )
-
-    result = await session.execute(stmt)
-    await session.commit()
-    return result.scalar()
+    dish: Annotated[DishService, Depends()],
+) -> ResponseDishModel:
+    return await dish.update_dish(submenu_id, dish_id, new_submenu)
 
 
-@router.delete("/{dish_id}", status_code=status.HTTP_200_OK)
-async def get_menu(dish_id: UUID, session: AsyncSession = Depends(get_async_session)):
-    await session.execute(delete(Dishes).where(Dishes.id == dish_id))
-    await session.commit()
+@router.delete('/{dish_id}', status_code=status.HTTP_200_OK)
+async def removing_dish(
+    dish_id: UUID,
+    dish: Annotated[DishService, Depends()],
+    menu_id: UUID,
+    submenu_id: UUID,
+) -> dict[str, str]:
+    return await dish.delete_dish(dish_id, menu_id, submenu_id)

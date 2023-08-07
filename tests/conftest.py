@@ -1,36 +1,26 @@
 import asyncio
-from random import randint
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
-
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from database import get_async_session
-from src.database import Base
-
+from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
+from src.database import Base, get_async_session
+from src.main import app
 from src.schemas import ResponseDishModel, ResponseMenuModel, ResponseSubmenuModel
 
-from src.config import (
-    DB_HOST,
-    DB_PORT,
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-)
-from src.main import app
-
-
 DATABASE_URL_TEST = (
-    f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 )
 
 engine_test = create_async_engine(DATABASE_URL_TEST, poolclass=NullPool)
 async_session_maker = sessionmaker(
-    engine_test, class_=AsyncSession, expire_on_commit=False
+    engine_test,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 # Base.metadata.bind = engine_test
@@ -53,16 +43,16 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def event_loop(request):
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 async def ac() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(app=app, base_url='http://test') as ac:
         yield ac
 
 
@@ -71,13 +61,13 @@ async def default_menu(ac: AsyncClient) -> ResponseMenuModel:
     return ResponseMenuModel.model_validate(
         (
             await ac.post(
-                "/api/v1/menus/",
+                '/api/v1/menus/',
                 json={
-                    "title": f"summer menu",
-                    "description": "menu",
+                    'title': 'summer menu',
+                    'description': 'menu',
                 },
             )
-        ).json()
+        ).json(),
     )
 
 
@@ -86,29 +76,31 @@ async def default_submenu(ac: AsyncClient, default_menu) -> ResponseSubmenuModel
     return ResponseSubmenuModel.model_validate(
         (
             await ac.post(
-                f"/api/v1/menus/{default_menu.id}/submenus/",
+                f'/api/v1/menus/{default_menu.id}/submenus/',
                 json={
-                    "title": f"georgian dishes",
-                    "description": "georgian dishes",
+                    'title': 'georgian dishes',
+                    'description': 'georgian dishes',
                 },
             )
-        ).json()
+        ).json(),
     )
 
 
 @pytest.fixture()
 async def default_dish(
-    ac: AsyncClient, default_menu, default_submenu
+    ac: AsyncClient,
+    default_menu,
+    default_submenu,
 ) -> ResponseDishModel:
     return ResponseDishModel.model_validate(
         (
             await ac.post(
-                f"/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}/dishes/",
+                f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}/dishes/',
                 json={
-                    "title": f"kharcho",
-                    "description": "hearty soup",
-                    "price": 100.25,
+                    'title': 'kharcho',
+                    'description': 'hearty soup',
+                    'price': 100.25,
                 },
             )
-        ).json()
+        ).json(),
     )

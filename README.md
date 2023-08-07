@@ -29,7 +29,7 @@
 ## 2. Swager
    Снимок экрана 2023-07-31 в 13.06.02
    <img width="1440" alt="изображение" src="https://github.com/waterstark/restaurant_menu/assets/84220220/3e17884e-96c6-4dc1-b09a-6bd176d27b32">
-  
+
 ## 3. Запуск тестов:
 ```docker-compose -f docker-compose.tests.yaml up --build```
 <br>
