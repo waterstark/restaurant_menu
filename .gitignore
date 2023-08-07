@@ -131,3 +131,5 @@ dmypy.json
 .ruff_cache
 .vscode
 dump.rdb
+psql/
+psql_test/

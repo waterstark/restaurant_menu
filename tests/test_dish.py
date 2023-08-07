@@ -34,9 +34,7 @@ async def test_add_dish(
             }
         ),
     )
-    # insert_assert(resp.status_code)
     assert resp.status_code == 201
-    # insert_assert(resp.json())
     assert resp.json() == {
         'title': 'menu',
         'description': 'menu',

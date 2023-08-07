@@ -2,6 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
+from redis import asyncio
 from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +29,7 @@ class MenuService:
     def __init__(
         self,
         session: Annotated[AsyncSession, Depends(get_async_session)],
-        cache: Annotated[AsyncSession, Depends(get_async_redis)],
+        cache: Annotated[asyncio.Redis, Depends(get_async_redis)],
     ):
         self.session = session
         self.cache = cache
@@ -65,7 +66,8 @@ class MenuService:
         menu = result.scalar()
         if not menu:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='menu not found',
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='menu not found',
             )
         submenu_count, dish_count = await self.count_submenus_and_dishes(menu_id)
         model_menu = ResponseMenuModel(
@@ -100,7 +102,7 @@ class MenuService:
         if result2 is None:
             return 0, 0
         else:
-            return result2
+            return result2.tuple()
 
     async def update_menu(self, menu_id: UUID, new_menu: MenuModel) -> UpdateMenuModel:
         stmt = (
@@ -112,10 +114,6 @@ class MenuService:
         result = await self.session.execute(stmt)
         menu = result.scalar()
         await self.session.commit()
-        # await self.cache.set(
-        #     f"menu_{menu_id}",
-        #     UpdateMenuModel.model_validate(menu).model_dump_json(),
-        # )
         await self.cache.delete('menu_list')
         await self.cache.delete(f'menu_{menu_id}')
         return UpdateMenuModel.model_validate(menu)
@@ -133,7 +131,7 @@ class SubMenuService:
     def __init__(
         self,
         session: Annotated[AsyncSession, Depends(get_async_session)],
-        cache: Annotated[AsyncSession, Depends(get_async_redis)],
+        cache: Annotated[asyncio.Redis, Depends(get_async_redis)],
     ):
         self.session = session
         self.cache = cache
@@ -152,7 +150,9 @@ class SubMenuService:
         return ResponceAllSubmenu.model_validate(db_submenu)
 
     async def create_submenu(
-        self, menu_id: UUID, new_submenu: SubmenuModel,
+        self,
+        menu_id: UUID,
+        new_submenu: SubmenuModel,
     ) -> ResponseSubmenuModel:
         stmt = (
             insert(SubMenu)
@@ -177,10 +177,10 @@ class SubMenuService:
         submenu = result.scalar()
         if submenu is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='submenu not found',
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='submenu not found',
             )
         count = await self.count_dishes(submenu_id)
-        print(count)
         model_submenu = ResponseSubmenuModel(
             title=submenu.title,
             description=submenu.description,
@@ -205,7 +205,10 @@ class SubMenuService:
         return result.scalar_one()
 
     async def update_submenu(
-        self, menu_id: UUID, submenu_id: UUID, new_submenu: UpdateSubmenuModel,
+        self,
+        menu_id: UUID,
+        submenu_id: UUID,
+        new_submenu: UpdateSubmenuModel,
     ) -> ResponseSubmenuModel:
         stmt = (
             update(SubMenu)
@@ -217,10 +220,6 @@ class SubMenuService:
         result = await self.session.execute(stmt)
         submenu = result.scalar_one()
         await self.session.commit()
-        # await self.cache.set(
-        #     (f"submenu_{submenu_id}"),
-        #     UpdateMenuModel.model_validate(submenu).model_dump_json(),
-        # )
         await self.cache.delete('submenu_list')
         await self.cache.delete(f'submenu_{submenu_id}')
         return ResponseSubmenuModel.model_validate(submenu)
@@ -244,7 +243,7 @@ class DishService:
     def __init__(
         self,
         session: Annotated[AsyncSession, Depends(get_async_session)],
-        cache: Annotated[AsyncSession, Depends(get_async_redis)],
+        cache: Annotated[asyncio.Redis, Depends(get_async_redis)],
     ):
         self.session = session
         self.cache = cache
@@ -263,7 +262,10 @@ class DishService:
         return ResponceAllDish.model_validate(db_dish)
 
     async def create_dish(
-        self, submenu_id: UUID, new_dish: DishModel, menu_id: UUID,
+        self,
+        submenu_id: UUID,
+        new_dish: DishModel,
+        menu_id: UUID,
     ) -> ResponseDishModel:
         stmt = (
             insert(Dishes)
@@ -289,7 +291,8 @@ class DishService:
         db_dish = result.scalar()
         if db_dish is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='dish not found',
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='dish not found',
             )
         await self.cache.set(
             f'dish_{dish_id}',
@@ -298,7 +301,10 @@ class DishService:
         return ResponseDishModel.model_validate(db_dish)
 
     async def update_dish(
-        self, submenu_id: UUID, dish_id: UUID, new_submenu: UpdateDishModel,
+        self,
+        submenu_id: UUID,
+        dish_id: UUID,
+        new_submenu: UpdateDishModel,
     ) -> ResponseDishModel:
         stmt = (
             update(Dishes)
@@ -310,16 +316,15 @@ class DishService:
         result = await self.session.execute(stmt)
         dish = result.scalar()
         await self.session.commit()
-        # await self.cache.set(
-        #     f"dish_{dish_id}",
-        #     UpdateMenuModel.model_validate(dish).model_dump_json(),
-        # )
         await self.cache.delete('dish_list')
         await self.cache.delete(f'dish_{dish_id}')
         return ResponseDishModel.model_validate(dish)
 
     async def delete_dish(
-        self, dish_id: UUID, menu_id: UUID, submenu_id: UUID,
+        self,
+        dish_id: UUID,
+        menu_id: UUID,
+        submenu_id: UUID,
     ) -> dict[str, str]:
         await self.session.execute(delete(Dishes).where(Dishes.id == dish_id))
         await self.session.commit()

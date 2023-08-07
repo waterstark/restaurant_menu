@@ -104,4 +104,5 @@ ignore = [
     "S",        # ignore bandit security issues in tests
     "B018",     # ignore useless expressions in tests
     "PT012",    # ignore complex with pytest.raises clauses
+    "ERA001",
 ]
