@@ -12,15 +12,6 @@ router = APIRouter(
 )
 
 
-# @router.get(
-#     "/", response_model=list[ResponseDishModel], status_code=status.HTTP_200_OK
-# )
-# async def get_submenu(session: AsyncSession = Depends(get_async_session)):
-#     query = select(SubMenu)
-#     result = await session.execute(query)
-#     return result.scalars().fetchall()
-
-
 @router.post('/', response_model=ResponseDishModel, status_code=status.HTTP_201_CREATED)
 async def add_dish(
     submenu_id: UUID,
