@@ -12,6 +12,11 @@ router = APIRouter(
 )
 
 
+@router.get('/data', status_code=status.HTTP_200_OK)
+async def get_all_data(menu: Annotated[MenuService, Depends()]):
+    return await menu.get_data()
+
+
 @router.get('/', response_model=ResponseAllMenu, status_code=status.HTTP_200_OK)
 async def get_all_menus(menu: Annotated[MenuService, Depends()]) -> ResponseAllMenu:
     return await menu.read_all_menus()

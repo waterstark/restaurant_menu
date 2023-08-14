@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.database import get_async_session
 from src.models import Dishes, Menu, SubMenu
@@ -17,6 +18,15 @@ class MenuCrud:
         session: Annotated[AsyncSession, Depends(get_async_session)],
     ) -> None:
         self.session = session
+
+    async def get_all_data(self):
+        query = (
+            select(Menu)
+            .order_by(Menu.id)
+            .options(selectinload(Menu.submenu).selectinload(SubMenu.dish))
+        )
+        result = await self.session.execute(query)
+        return result.scalars().fetchall()
 
     async def get_list_menus(
         self,

@@ -66,6 +66,26 @@ services:
         condition: service_healthy
       app_redis:
         condition: service_healthy
+      app_rabbit:
+        condition: service_healthy
+
+  app_celery_worker:
+    container_name: app_celery
+    build: .
+    volumes:
+      - shared:/restaurant_menu/reports
+    env_file:
+      - .env
+    networks:
+      - web_app_network
+    command: "celery -A app.v1.celery worker --loglevel=INFO"
+    depends_on:
+      app_redis:
+        condition: service_healthy
+      app_rabbit:
+        condition: service_healthy
+      app:
+        condition: service_started
 
 volumes:
   shared:

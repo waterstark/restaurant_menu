@@ -33,6 +33,9 @@ class MenuService:
         self.cache = cache
         self.crud = crud
 
+    async def get_data(self):
+        return await self.crud.get_all_data()
+
     async def read_all_menus(self) -> ResponseAllMenu:
         cached_data = await self.cache.get('menu_list')
         if cached_data:
