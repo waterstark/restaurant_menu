@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 
 from src.schemas import MenuModel, ResponseAllMenu, ResponseMenuModel, UpdateMenuModel
 from src.service.service import MenuService
@@ -26,8 +26,9 @@ async def get_all_menus(menu: Annotated[MenuService, Depends()]) -> ResponseAllM
 async def add_menu(
     new_menu: MenuModel,
     menu: Annotated[MenuService, Depends()],
+    background_tasks: BackgroundTasks,
 ) -> ResponseMenuModel:
-    return await menu.create_menu(new_menu)
+    return await menu.create_menu(new_menu, background_tasks)
 
 
 @router.get(
@@ -51,13 +52,15 @@ async def patch_menu(
     menu_id: UUID,
     new_menu: MenuModel,
     menu: Annotated[MenuService, Depends()],
+    background_tasks: BackgroundTasks,
 ) -> UpdateMenuModel:
-    return await menu.update_menu(menu_id, new_menu)
+    return await menu.update_menu(menu_id, new_menu, background_tasks)
 
 
 @router.delete('/{menu_id}', status_code=status.HTTP_200_OK)
 async def delete_menu(
     menu_id: UUID,
     menu: Annotated[MenuService, Depends()],
+    background_tasks: BackgroundTasks,
 ) -> dict[str, str]:
-    return await menu.delete_menu(menu_id)
+    return await menu.delete_menu(menu_id, background_tasks)

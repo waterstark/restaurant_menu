@@ -4,8 +4,8 @@ from httpx import AsyncClient
 from src.schemas import ResponseMenuModel, ResponseSubmenuModel
 
 
-async def test_get_all_submenus(ac: AsyncClient, default_menu: ResponseMenuModel):
-    resp = await ac.get(f'/api/v1/menus/{default_menu.id}/submenus/')
+async def test_get_all_submenu(ac: AsyncClient, default_menu: ResponseMenuModel):
+    resp = await ac.get(f'/api/v1/menus/{default_menu.id}/submenu/')
     # insert_assert(resp.status_code)
     assert resp.status_code == 200
     # insert_assert(resp.json())
@@ -17,7 +17,7 @@ async def test_add_submenu(
     default_menu: ResponseMenuModel,
 ):
     resp = await ac.post(
-        f'/api/v1/menus/{default_menu.id}/submenus/',
+        f'/api/v1/menus/{default_menu.id}/submenu/',
         json={
             'title': 'menu',
             'description': 'menu',
@@ -40,7 +40,7 @@ async def test_get_submenu(
     default_submenu: ResponseSubmenuModel,
 ):
     resp = await ac.get(
-        f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}',
+        f'/api/v1/menus/{default_menu.id}/submenu/{default_submenu.id}',
     )
     # insert_assert(resp.status_code)
     assert resp.status_code == 200
@@ -59,7 +59,7 @@ async def test_update_submenu(
     default_menu: ResponseSubmenuModel,
 ):
     resp = await ac.patch(
-        f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}',
+        f'/api/v1/menus/{default_menu.id}/submenu/{default_submenu.id}',
         json={
             'title': 'another submenu',
             'description': 'submenu description',
@@ -82,12 +82,12 @@ async def test_delete_menu(
     default_submenu: ResponseSubmenuModel,
 ):
     resp = await ac.delete(
-        f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}',
+        f'/api/v1/menus/{default_menu.id}/submenu/{default_submenu.id}',
     )
     # insert_assert(resp.status_code)
     assert resp.status_code == 200
 
     result = await ac.get(
-        f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}',
+        f'/api/v1/menus/{default_menu.id}/submenu/{default_submenu.id}',
     )
     assert result.status_code == 404

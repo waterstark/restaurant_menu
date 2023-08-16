@@ -1,7 +1,7 @@
 from dirty_equals import IsUUID
 from httpx import AsyncClient
 
-from src.schemas import ResponseMenuModel
+from src.schemas import ResponseDishModel, ResponseMenuModel
 
 
 async def test_get_all_menus(ac: AsyncClient):
@@ -9,6 +9,36 @@ async def test_get_all_menus(ac: AsyncClient):
     assert resp.status_code == 200
     # insert_assert(resp.json())
     assert resp.json() == []
+
+
+async def test_get_all_data(ac: AsyncClient, default_dish: ResponseDishModel):
+    resp = await ac.get('/api/v1/menus/data')
+    assert resp.status_code == 200
+    # insert_assert(resp.json())
+    assert resp.json() == [
+        {
+            'title': 'summer menu',
+            'id': IsUUID(4),
+            'description': 'menu',
+            'submenu': [
+                {
+                    'title': 'georgian dishes',
+                    'description': 'georgian dishes',
+                    'id': IsUUID(4),
+                    'menu_id': IsUUID(4),
+                    'dishes': [
+                        {
+                            'title': 'kharcho',
+                            'price': 100.25,
+                            'id': IsUUID(4),
+                            'description': 'hearty soup',
+                            'submenu_id': IsUUID(4),
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
 
 
 async def test_add_menu(ac: AsyncClient):
@@ -25,7 +55,7 @@ async def test_add_menu(ac: AsyncClient):
         'title': 'menu',
         'description': 'menu',
         'id': IsUUID(4),
-        'submenus_count': 0,
+        'submenu_count': 0,
         'dishes_count': 0,
     }
 
@@ -38,7 +68,7 @@ async def test_get_menu(ac: AsyncClient, default_menu: ResponseMenuModel):
         'title': default_menu.title,
         'description': 'menu',
         'id': IsUUID(4),
-        'submenus_count': 0,
+        'submenu_count': 0,
         'dishes_count': 0,
     }
 

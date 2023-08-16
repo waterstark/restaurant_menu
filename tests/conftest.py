@@ -39,13 +39,14 @@ async def prepare_database():
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-    return
-    # async with engine_test.begin() as conn:
-    #     await conn.run_sync(Base.metadata.drop_all)
+    yield
+    async with engine_test.begin() as conn:
+        # await conn.run_sync(Base.metadata.drop_all)
+        pass
 
 
 @pytest.fixture(scope='session')
-def event_loop(request):
+def event_loop(request: type[pytest.FixtureRequest]):
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -73,11 +74,14 @@ async def default_menu(ac: AsyncClient) -> ResponseMenuModel:
 
 
 @pytest.fixture()
-async def default_submenu(ac: AsyncClient, default_menu) -> ResponseSubmenuModel:
+async def default_submenu(
+    ac: AsyncClient,
+    default_menu: ResponseMenuModel,
+) -> ResponseSubmenuModel:
     return ResponseSubmenuModel.model_validate(
         (
             await ac.post(
-                f'/api/v1/menus/{default_menu.id}/submenus/',
+                f'/api/v1/menus/{default_menu.id}/submenu/',
                 json={
                     'title': 'georgian dishes',
                     'description': 'georgian dishes',
@@ -90,13 +94,13 @@ async def default_submenu(ac: AsyncClient, default_menu) -> ResponseSubmenuModel
 @pytest.fixture()
 async def default_dish(
     ac: AsyncClient,
-    default_menu,
-    default_submenu,
+    default_menu: ResponseMenuModel,
+    default_submenu: ResponseSubmenuModel,
 ) -> ResponseDishModel:
     return ResponseDishModel.model_validate(
         (
             await ac.post(
-                f'/api/v1/menus/{default_menu.id}/submenus/{default_submenu.id}/dishes/',
+                f'/api/v1/menus/{default_menu.id}/submenu/{default_submenu.id}/dishes/',
                 json={
                     'title': 'kharcho',
                     'description': 'hearty soup',

@@ -21,7 +21,7 @@ class Dishes(Base):
         ForeignKey('submenu.id', ondelete='CASCADE'),
     )
     submenu: Mapped['SubMenu'] = relationship(
-        back_populates='dish',
+        back_populates='dishes',
         cascade='all, delete',
         passive_deletes=True,
     )
@@ -44,7 +44,7 @@ class SubMenu(Base):
         back_populates='submenu',
         passive_deletes=True,
     )
-    dish: Mapped['Dishes'] = relationship(
+    dishes: Mapped[list['Dishes']] = relationship(
         back_populates='submenu',
         cascade='all, delete',
     )
@@ -60,7 +60,7 @@ class Menu(Base):
         nullable=False,
     )
     description: Mapped[str] = mapped_column(String(500))
-    submenu: Mapped['SubMenu'] = relationship(
+    submenu: Mapped[list['SubMenu']] = relationship(
         back_populates='menu',
         cascade='all, delete',
     )

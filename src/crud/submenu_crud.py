@@ -18,7 +18,7 @@ class SubMenuCrud:
     ) -> None:
         self.session = session
 
-    async def get_list_submenus(self, menu_id: UUID) -> Sequence[SubMenu]:
+    async def get_list_submenu(self, menu_id: UUID) -> Sequence[SubMenu]:
         query = select(SubMenu).where(SubMenu.menu_id == menu_id)
         result = await self.session.execute(query)
         return result.scalars().fetchall()

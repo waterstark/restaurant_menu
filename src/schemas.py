@@ -22,7 +22,7 @@ class ResponseBaseRestaurantModel(BaseRestaurantModel):
 
 
 class ResponseMenuModel(ResponseBaseRestaurantModel):
-    submenus_count: int = 0
+    submenu_count: int = 0
     dishes_count: int = 0
 
 
@@ -68,3 +68,21 @@ class UpdateDishModel(UpdateRestaurantModel):
 ResponseAllMenu = RootModel[list[ResponseMenuModel]]
 ResponceAllSubmenu = RootModel[list[ResponseSubmenuModel]]
 ResponceAllDish = RootModel[list[ResponseDishModel]]
+
+
+class DishSchema(BaseModel):
+    title: str
+    description: str
+    price: str
+
+
+class submenuchema(BaseModel):
+    title: str
+    description: str | None
+    dishes: list[DishSchema]
+
+
+class MenuSchema(BaseModel):
+    title: str
+    description: str | None
+    submenu: list[submenuchema]
