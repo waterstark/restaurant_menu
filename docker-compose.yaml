@@ -66,26 +66,39 @@ services:
         condition: service_healthy
       app_redis:
         condition: service_healthy
-      app_rabbit:
-        condition: service_healthy
 
-  app_celery_worker:
-    container_name: app_celery
-    build: .
-    volumes:
-      - shared:/restaurant_menu/reports
+  app_rabbit:
+    image: rabbitmq:latest
+    container_name: rabbit
+    restart: always
+    hostname: rabbitmq
     env_file:
       - .env
     networks:
-      - web_app_network
-    command: "celery -A app.v1.celery worker --loglevel=INFO"
+      - app_network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 30s
+      retries: 15
+
+  app_celery_worker:
+    container_name: app_celery
+    image: celery:latest
+    build: .
+    restart: always
+    volumes:
+      - ./src/admin:/app/src/menu/admin
+    entrypoint: >
+      sh -c "
+        poetry run celery -A src.celery.celery worker -B --loglevel=INFO"
+    env_file:
+      - .env
+    networks:
+      - app_network
     depends_on:
-      app_redis:
-        condition: service_healthy
       app_rabbit:
         condition: service_healthy
-      app:
-        condition: service_started
 
 volumes:
   shared:

@@ -1,20 +1,26 @@
+import asyncio
+
 from celery import Celery
-from config import RABBITMQ_PASSWORD, RABBITMQ_USER, RABBITMQ_VHOST
+from src.celery.tasks import comparation
+from src.config import RABBITMQ_PASSWORD, RABBITMQ_USER, RABBITMQ_VHOST
 
 celery = Celery(
     'tasks',
-    broker=f'amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@app_rabbit:5672/{RABBITMQ_VHOST}',
+    broker=f'amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_VHOST}:5672',
+    # broker="amqp://localhost",
 )
 
 
 @celery.task
 def update_admin_xlsx():
-    pass
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(comparation())
 
 
+# update_admin_xlsx.delay()
 celery.conf.beat_schedule = {
     'sync-every-15-seconds': {
-        'task': 'src.tasks.update_admin_xlsx',
+        'task': 'src.celery.celery.update_admin_xlsx',
         'schedule': 15.0,  # Интервал в секундах
     },
 }

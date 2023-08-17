@@ -38,6 +38,8 @@ class MenuService:
         self.crud = crud
 
     async def get_data(self):
+        # data = MenuSchema.model_validate(await self.crud.get_all_data())
+        # await self.cache.set("data", data.model_dump_json(), ex=60)
         return await self.crud.get_all_data()
 
     async def read_all_menus(self) -> ResponseAllMenu:
@@ -67,14 +69,19 @@ class MenuService:
         return menu
 
     async def update_menu(
-        self, menu_id: UUID, new_menu: MenuModel, background_tasks: BackgroundTasks,
+        self,
+        menu_id: UUID,
+        new_menu: MenuModel,
+        background_tasks: BackgroundTasks,
     ) -> UpdateMenuModel:
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         return UpdateMenuModel.model_validate(await self.crud.update(menu_id, new_menu))
 
     async def delete_menu(
-        self, menu_id: UUID, background_tasks: BackgroundTasks,
+        self,
+        menu_id: UUID,
+        background_tasks: BackgroundTasks,
     ) -> dict[str, str]:
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
@@ -113,7 +120,9 @@ class Submenuservice:
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
         background_tasks.add_task(
-            delete_cache, self.cache, f'submenu_{crud_submenu.id}',
+            delete_cache,
+            self.cache,
+            f'submenu_{crud_submenu.id}',
         )
         background_tasks.add_task(delete_cache, self.cache, 'submenu_list')
         return ResponseSubmenuModel.model_validate(crud_submenu)
@@ -124,7 +133,9 @@ class Submenuservice:
             return ResponseSubmenuModel.model_validate_json(cached_data)
         model_submenu = await self.crud.get_by_submenu_id(submenu_id)
         await self.cache.set(
-            f'menu_{submenu_id}', model_submenu.model_dump_json(), ex=60,
+            f'menu_{submenu_id}',
+            model_submenu.model_dump_json(),
+            ex=60,
         )
         return model_submenu
 
@@ -141,7 +152,10 @@ class Submenuservice:
         return ResponseSubmenuModel.model_validate(crud_submenu)
 
     async def delete_submenu(
-        self, submenu_id: UUID, menu_id: UUID, background_tasks: BackgroundTasks,
+        self,
+        submenu_id: UUID,
+        menu_id: UUID,
+        background_tasks: BackgroundTasks,
     ) -> dict[str, str]:
         await self.crud.delete(submenu_id)
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')

@@ -86,3 +86,11 @@ class MenuSchema(BaseModel):
     title: str
     description: str | None
     submenu: list[submenuchema]
+
+
+class DishAdmin(ResponseDishModel):
+    submenu_id: UUID
+
+
+class SubMenuAdmin(ResponseBaseRestaurantModel):
+    menu_id: UUID

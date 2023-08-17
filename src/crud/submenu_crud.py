@@ -55,10 +55,11 @@ class SubMenuCrud:
         self,
         menu_id: UUID,
         new_submenu: SubmenuModel,
+        **kwargs,
     ) -> SubMenu:
         stmt = (
             insert(SubMenu)
-            .values(**new_submenu.model_dump(), menu_id=menu_id)
+            .values(**new_submenu.model_dump(), menu_id=menu_id, **kwargs)
             .returning(SubMenu)
         )
         result = await self.session.execute(stmt)

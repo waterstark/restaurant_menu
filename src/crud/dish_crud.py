@@ -34,10 +34,10 @@ class DishCrud:
             )
         return db_dish
 
-    async def create(self, submenu_id: UUID, new_dish: DishModel) -> Dishes:
+    async def create(self, submenu_id: UUID, new_dish: DishModel, **kwargs) -> Dishes:
         stmt = (
             insert(Dishes)
-            .values(**new_dish.model_dump(), submenu_id=submenu_id)
+            .values(**new_dish.model_dump(), submenu_id=submenu_id, **kwargs)
             .returning(Dishes)
         )
         result = await self.session.execute(stmt)
@@ -49,11 +49,11 @@ class DishCrud:
         self,
         submenu_id: UUID,
         dish_id: UUID,
-        new_submenu: UpdateDishModel,
+        new_dish: UpdateDishModel,
     ) -> Dishes:
         stmt = (
             update(Dishes)
-            .values(**new_submenu.model_dump(), submenu_id=submenu_id)
+            .values(**new_dish.model_dump(), submenu_id=submenu_id)
             .returning(Dishes)
             .where(Dishes.id == dish_id)
         )

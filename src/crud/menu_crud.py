@@ -19,7 +19,7 @@ class MenuCrud:
     ) -> None:
         self.session = session
 
-    async def get_all_data(self):
+    async def get_all_data(self) -> Sequence[Menu]:
         return (
             (
                 await self.session.execute(
@@ -39,8 +39,8 @@ class MenuCrud:
         result = await self.session.execute(query)
         return result.scalars().fetchall()
 
-    async def create(self, new_menu: MenuModel) -> Menu:
-        stmt = insert(Menu).values(**new_menu.model_dump()).returning(Menu)
+    async def create(self, new_menu: MenuModel, **kwargs) -> Menu:
+        stmt = insert(Menu).values(**new_menu.model_dump(), **kwargs).returning(Menu)
         result = await self.session.execute(stmt)
         await self.session.commit()
         return result.scalar_one()
