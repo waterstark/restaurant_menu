@@ -18,26 +18,22 @@ async def test_get_all_data(ac: AsyncClient, default_dish: ResponseDishModel):
     assert resp.json() == [
         {
             'title': 'summer menu',
-            'id': IsUUID(4),
             'description': 'menu',
             'submenu': [
                 {
                     'title': 'georgian dishes',
                     'description': 'georgian dishes',
-                    'id': IsUUID(4),
-                    'menu_id': IsUUID(4),
                     'dishes': [
                         {
                             'title': 'kharcho',
-                            'price': 100.25,
-                            'id': IsUUID(4),
                             'description': 'hearty soup',
-                            'submenu_id': IsUUID(4),
-                        },
+                            'price': '100.25',
+                        }
                     ],
-                },
+                }
             ],
-        },
+            'id': IsUUID(4),
+        }
     ]
 
 

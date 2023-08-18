@@ -73,7 +73,7 @@ ResponceAllDish = RootModel[list[ResponseDishModel]]
 class DishSchema(ConfigModel):
     title: str
     description: str
-    price: str
+    price: Decimal
 
 
 class submenuchema(ConfigModel):
