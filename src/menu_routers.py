@@ -3,7 +3,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 
-from src.schemas import MenuModel, ResponseAllMenu, ResponseMenuModel, UpdateMenuModel
+from src.schemas import (
+    MenuModel,
+    ResponceAllMenus,
+    ResponseAllMenu,
+    ResponseMenuModel,
+    UpdateMenuModel,
+)
 from src.service.service import MenuService
 
 router = APIRouter(
@@ -12,8 +18,8 @@ router = APIRouter(
 )
 
 
-@router.get('/data', status_code=status.HTTP_200_OK)
-async def get_all_data(menu: Annotated[MenuService, Depends()]):
+@router.get('/data', response_model=ResponceAllMenus, status_code=status.HTTP_200_OK)
+async def get_all_data(menu: Annotated[MenuService, Depends()]) -> ResponceAllMenus:
     return await menu.get_data()
 
 

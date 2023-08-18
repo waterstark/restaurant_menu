@@ -12,6 +12,7 @@ from src.schemas import (
     DishModel,
     MenuModel,
     ResponceAllDish,
+    ResponceAllMenus,
     ResponceAllSubmenu,
     ResponseAllMenu,
     ResponseDishModel,
@@ -37,10 +38,12 @@ class MenuService:
         self.cache = cache
         self.crud = crud
 
-    async def get_data(self):
-        # data = MenuSchema.model_validate(await self.crud.get_all_data())
-        # await self.cache.set("data", data.model_dump_json(), ex=60)
-        return await self.crud.get_all_data()
+    async def get_data(self) -> ResponceAllMenus:
+        cached_data = await self.cache.get('data')
+        if cached_data:
+            return ResponceAllMenus.model_validate_json(cached_data)
+        data = await self.crud.get_all_data()
+        return ResponceAllMenus.model_validate(data)
 
     async def read_all_menus(self) -> ResponseAllMenu:
         cached_data = await self.cache.get('menu_list')
@@ -58,6 +61,7 @@ class MenuService:
         menu = await self.crud.create(new_menu)
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu.id}')
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return ResponseMenuModel.model_validate(menu)
 
     async def read_menu(self, menu_id: UUID) -> ResponseMenuModel:
@@ -75,6 +79,7 @@ class MenuService:
         background_tasks: BackgroundTasks,
     ) -> UpdateMenuModel:
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         return UpdateMenuModel.model_validate(await self.crud.update(menu_id, new_menu))
 
@@ -85,6 +90,7 @@ class MenuService:
     ) -> dict[str, str]:
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         await self.crud.delete(menu_id)
         return {'status': 'succes', 'detail': 'menu deleted'}
 
@@ -119,6 +125,7 @@ class Submenuservice:
         crud_submenu = await self.crud.create(menu_id, new_submenu)
         background_tasks.add_task(delete_cache, self.cache, f'menu_{menu_id}')
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         background_tasks.add_task(
             delete_cache,
             self.cache,
@@ -149,6 +156,7 @@ class Submenuservice:
         crud_submenu = await self.crud.update(menu_id, submenu_id, new_submenu)
         background_tasks.add_task(delete_cache, self.cache, 'submenu_list')
         background_tasks.add_task(delete_cache, self.cache, f'submenu_{submenu_id}')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return ResponseSubmenuModel.model_validate(crud_submenu)
 
     async def delete_submenu(
@@ -163,6 +171,7 @@ class Submenuservice:
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
         background_tasks.add_task(delete_cache, self.cache, 'submenu_list')
         background_tasks.add_task(delete_cache, self.cache, 'dish_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return {'status': 'succes', 'detail': 'submenu deleted'}
 
 
@@ -200,6 +209,7 @@ class DishService:
         background_tasks.add_task(delete_cache, self.cache, 'menu_list')
         background_tasks.add_task(delete_cache, self.cache, 'submenu_list')
         background_tasks.add_task(delete_cache, self.cache, 'dish_list')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return ResponseDishModel.model_validate(crud_dish)
 
     async def read_dish(self, dish_id: UUID) -> ResponseDishModel:
@@ -224,6 +234,7 @@ class DishService:
         crud_dish = await self.crud.update(submenu_id, dish_id, new_submenu)
         background_tasks.add_task(delete_cache, self.cache, 'dish_list')
         background_tasks.add_task(delete_cache, self.cache, f'dish_{dish_id}')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return ResponseDishModel.model_validate(crud_dish)
 
     async def delete_dish(
@@ -240,4 +251,5 @@ class DishService:
         background_tasks.add_task(delete_cache, self.cache, 'submenu_list')
         background_tasks.add_task(delete_cache, self.cache, 'dish_list')
         background_tasks.add_task(delete_cache, self.cache, f'dish_{dish_id}')
+        background_tasks.add_task(delete_cache, self.cache, 'data')
         return {'status': 'succes', 'detail': 'dish deleted'}

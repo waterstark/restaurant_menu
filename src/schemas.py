@@ -70,19 +70,19 @@ ResponceAllSubmenu = RootModel[list[ResponseSubmenuModel]]
 ResponceAllDish = RootModel[list[ResponseDishModel]]
 
 
-class DishSchema(BaseModel):
+class DishSchema(ConfigModel):
     title: str
     description: str
     price: str
 
 
-class submenuchema(BaseModel):
+class submenuchema(ConfigModel):
     title: str
     description: str | None
     dishes: list[DishSchema]
 
 
-class MenuSchema(BaseModel):
+class MenuSchema(ConfigModel):
     title: str
     description: str | None
     submenu: list[submenuchema]
@@ -94,3 +94,10 @@ class DishAdmin(ResponseDishModel):
 
 class SubMenuAdmin(ResponseBaseRestaurantModel):
     menu_id: UUID
+
+
+class AllMenu(MenuSchema):
+    id: UUID
+
+
+ResponceAllMenus = RootModel[list[AllMenu]]

@@ -1,13 +1,22 @@
+from typing import Sequence
+
 import openpyxl
 
 from src.crud.dish_crud import DishCrud
 from src.crud.menu_crud import MenuCrud
 from src.crud.submenu_crud import SubMenuCrud
 from src.database import async_session_maker
-from src.schemas import DishModel, MenuModel, SubmenuModel
+from src.models import Menu
+from src.schemas import (
+    DishModel,
+    MenuModel,
+    SubmenuModel,
+    UpdateDishModel,
+    UpdateSubmenuModel,
+)
 
 
-def get_data_from_xlsx():
+def get_data_from_xlsx() -> tuple[dict, dict, dict]:
     workbook = openpyxl.load_workbook('src/admin/Menu.xlsx')
     worksheet = workbook.active
     black_list = ['None']
@@ -82,7 +91,7 @@ def get_data_from_xlsx():
     return menu, submenu, dish
 
 
-async def get_data_from_db(db_dict):
+async def get_data_from_db(db_dict: Sequence[Menu]) -> tuple[dict, dict, dict]:
     menus = {}
     submenus = {}
     dishes = {}
@@ -141,7 +150,7 @@ async def comparation():
                 )
             elif db_submenu.get(key) != values:
                 await submenu_crud.update(
-                    new_submenu=SubmenuModel(**values),
+                    new_submenu=UpdateSubmenuModel(**values),
                     submenu_id=key,
                     menu_id=values['menu_id'],
                 )
@@ -158,7 +167,7 @@ async def comparation():
                 )
             elif db_dish.get(key) != values:
                 await dish_crud.update(
-                    new_dish=DishModel(**values),
+                    new_dish=UpdateDishModel(**values),
                     dish_id=key,
                     submenu_id=values['submenu_id'],
                 )

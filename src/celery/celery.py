@@ -7,7 +7,6 @@ from src.config import RABBITMQ_PASSWORD, RABBITMQ_USER, RABBITMQ_VHOST
 celery = Celery(
     'tasks',
     broker=f'amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_VHOST}:5672',
-    # broker="amqp://localhost",
 )
 
 
