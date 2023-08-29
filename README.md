@@ -1,4 +1,4 @@
-# restaurant_menu
+# Restaurant menu
 
 ## Start
 
